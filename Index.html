@@ -1,0 +1,630 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MAO & FARM - Review Anime</title>
+    <style>
+        /* --- 1. FONTS & ROOT VARIABLES --- */
+        @font-face { font-family: 'myfont'; src: url('fonts/myfont.ttf'); }
+        :root {
+            --primary-blue: #0984e3; 
+            --dark-blue: #06528f;
+            /* --bg-color: #f0f8ff;  <-- ไม่จำเป็นต้องใช้สีพื้นหลังเดิมแล้ว */
+            --text-color: #2c3e50;
+        }
+        
+        /* 🔥 แก้ไขส่วน body เดิม */
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            /* background-color: var(--bg-color); <-- เอาสีพื้นหลังเดิมออก */
+            color: var(--text-color);
+            position: relative; /* จำเป็น! เพื่อให้พื้นหลังอ้างอิงตำแหน่งได้ */
+            min-height: 100vh; /* ความสูงอย่างน้อยเต็มหน้าจอ */
+        }
+
+        /* 🔥 แก้ไข body ให้พื้นหลังสุดเป็นสีดำ (ภาพจะได้ไม่ขาววอก) */
+        body { 
+            font-family: 'Sarabun', sans-serif; 
+            margin: 0; 
+            padding: 0; 
+            
+            /* ✅ เปลี่ยนเป็นสีดำ! พอรูปจางลง มันจะดูมืดเข้ม ไม่ใช่ขาวซีด */
+            background-color: #000000; 
+            
+            color: var(--text-color);
+            position: relative;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* 🔥🔥 พื้นหลังรูปภาพแบบโปร่งใส (ปรับให้เข้มขึ้น) 🔥🔥 */
+        body::before {
+            content: "";
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            z-index: -1;
+            
+            /* อย่าลืมตรวจสอบชื่อไฟล์รูปของคุณนะครับ */
+            background-image: url('images/BG2.jpg'); 
+            
+            background-size: cover;
+            background-position: center center;
+            background-attachment: fixed;
+            background-repeat: no-repeat;
+
+            /* ✅ ปรับเลขนี้เพิ่มขึ้นครับ (0.6 - 0.7 กําลังสวย) 
+               ยิ่งเยอะ ยิ่งเห็นรูปชัด / ยิ่งน้อย ยิ่งมืดลง (เพราะพื้นหลังเราเป็นสีดำแล้ว) */
+            opacity: 0.7; 
+        }
+        
+        /* --- 2. HEADER & SEARCH --- */
+        /* (ส่วนอื่นๆ เหมือนเดิม...) */
+        header { background-color: var(--primary-blue); padding: 15px 30px; display: flex; justify-content: center; align-items: center; position: sticky; top: 0; z-index: 999; box-shadow: 0 4px 10px rgba(0,0,0,0.15); position: relative; height: 80px; }
+        .header-logo { position: absolute; left: 30px; top: 50%; transform: translateY(-50%); cursor: pointer; }
+        .logo-img { height: 170px; width: auto; display: block; filter: drop-shadow(2px 4px 6px rgba(0,0,0,0.2)); transition: transform 0.3s; }
+        .logo-img:hover { transform: scale(1.05); }
+        
+        /* Wrapper สำหรับ Search และ Dropdown */
+        .search-wrapper { 
+            width: 100%; 
+            max-width: 600px; 
+            position: relative; 
+        }
+        
+        #searchInput { 
+            width: 100%; 
+            padding: 12px 25px; 
+            border-radius: 50px; 
+            border: 2px solid rgba(255,255,255,0.2); 
+            background-color: var(--dark-blue); 
+            color: white; 
+            font-size: 1rem; 
+            outline: none; 
+            transition: all 0.3s; 
+            box-sizing: border-box; 
+        }
+        #searchInput::placeholder { color: rgba(255,255,255,0.7); }
+        
+        #searchInput:focus { 
+            background-color: white; 
+            color: #000000 !important; 
+            border-color: white; 
+            box-shadow: 0 0 15px rgba(255, 255, 255, 0.3); 
+            border-radius: 20px 20px 0 0; 
+        }
+
+        /* กล่อง Search Suggestions */
+        .suggestions-box {
+            position: absolute;
+            top: 100%;
+            left: 0;
+            width: 100%;
+            background-color: white;
+            border-radius: 0 0 20px 20px;
+            box-shadow: 0 10px 20px rgba(0,0,0,0.2);
+            z-index: 1000;
+            display: none;
+            overflow: hidden;
+            border-top: 1px solid #eee;
+        }
+
+        .suggestion-item {
+            padding: 12px 25px;
+            cursor: pointer;
+            color: #333;
+            font-size: 1rem;
+            display: flex;
+            align-items: center;
+            border-bottom: 1px solid #f0f0f0;
+            transition: background 0.2s;
+        }
+        .suggestion-item:last-child { border-bottom: none; }
+        .suggestion-item:hover { background-color: #f0f8ff; color: var(--primary-blue); }
+        .suggestion-icon { margin-right: 15px; color: #888; font-size: 1.1rem; }
+
+        .container { max-width: 1200px; margin: 0 auto; padding: 40px 20px; }
+
+        /* --- 3. STREAMING BAR --- */
+        .category-section { margin-bottom: 40px; }
+        
+        .section-title { 
+            font-size: 1.8rem; 
+            margin-bottom: 25px; 
+            margin-top: 40px;
+            color: var(--text-color); 
+            border-left: 8px solid var(--primary-blue); 
+            background: linear-gradient(90deg, #e3f2fd 0%, rgba(255,255,255,0) 100%);
+            padding: 10px 20px; 
+            border-radius: 0 50px 50px 0;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+        }
+        .section-title.first { margin-top: 0; }
+
+        .streaming-list { 
+            display: flex; 
+            gap: 20px; 
+            overflow-x: auto; 
+            background: linear-gradient(135deg, var(--primary-blue) 0%, #74b9ff 100%);
+            padding: 25px; 
+            border-radius: 20px; 
+            box-shadow: 0 10px 30px rgba(9, 132, 227, 0.25);
+            width: fit-content;
+            max-width: 100%;
+            margin: 10px 0; 
+            scrollbar-width: none; 
+        }
+        .streaming-list::-webkit-scrollbar { display: none; }
+        
+        .streaming-item { width: 80px; height: 80px; min-width: 80px; background-color: white; border-radius: 50%; display: flex; justify-content: center; align-items: center; box-shadow: 0 5px 15px rgba(0,0,0,0.1); border: 3px solid transparent; transition: transform 0.3s, box-shadow 0.3s; cursor: pointer; }
+        .streaming-item:hover { transform: translateY(-5px); box-shadow: 0 15px 25px rgba(0, 0, 0, 0.2); }
+        .streaming-item.active { border-color: #ffd700; box-shadow: 0 0 15px rgba(255, 215, 0, 0.6); transform: scale(1.1); }
+        .streaming-logo { width: 60%; height: 60%; object-fit: contain; }
+        .streaming-item[title="Disney+"] .streaming-logo { filter: invert(1) brightness(0); }
+
+        /* --- 4. ANIME GRID --- */
+        .anime-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(250px, 1fr)); gap: 30px; }
+        .anime-card { background-color: white; border-radius: 15px; overflow: hidden; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: transform 0.3s; animation: fadeIn 0.5s ease-in-out; border: 1px solid #dfe6e9; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(20px); } to { opacity: 1; transform: translateY(0); } }
+        .anime-card:hover { transform: translateY(-5px); box-shadow: 0 15px 30px rgba(9, 132, 227, 0.2); }
+        .anime-image { width: 100%; aspect-ratio: 2 / 3; height: auto; object-fit: cover; object-position: top; }
+        .card-content { padding: 20px; }
+        .anime-title { margin: 0 0 10px 0; color: var(--text-color); font-size: 1.4rem; }
+        .rating { color: #f1c40f; font-weight: bold; display: block; margin-bottom: 5px; }
+        .anime-desc { color: #636e72; font-size: 0.9rem; line-height: 1.5; margin-bottom: 15px; display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; } 
+        .btn-trailer { background-color: var(--primary-blue); color: white; border: none; padding: 10px 0; width: 100%; border-radius: 25px; cursor: pointer; font-weight: bold; transition: background 0.3s; }
+        .btn-trailer:hover { background-color: #74b9ff; }
+        footer { text-align: center; padding: 20px; background-color: white; margin-top: 50px; color: #636e72; border-top: 1px solid #dfe6e9; }
+        #noResult { text-align: center; width: 100%; display: none; color: #888; margin-top: 20px; grid-column: 1/-1; }
+
+        /* --- 5. MODAL (IMDb Style) --- */
+        .modal { display: none; position: fixed; z-index: 1000; left: 0; top: 0; width: 100%; height: 100%; background-color: rgba(0,0,0,0.9); justify-content: center; align-items: center; padding: 20px; box-sizing: border-box; backdrop-filter: blur(8px); }
+        .modal-content { position: relative; width: 100%; max-width: 1200px; background-color: #1f1f1f; color: #ffffff; border-radius: 12px; overflow: hidden; display: flex; flex-direction: column; box-shadow: 0 25px 50px rgba(0,0,0,0.8); max-height: 95vh; overflow-y: auto; }
+        .close-btn { position: absolute; top: 20px; right: 25px; color: #b3b3b3; font-size: 30px; cursor: pointer; z-index: 20; transition: color 0.3s; }
+        .close-btn:hover { color: #f5c518; }
+        .modal-header { padding: 25px 80px 15px 30px; display: flex; justify-content: space-between; align-items: flex-start; }
+        .modal-title-group h2 { margin: 0; font-size: 2.2rem; color: #ffffff; font-weight: 500; }
+        .modal-meta-data { color: #b3b3b3; font-size: 0.9rem; margin-top: 5px; display: flex; gap: 15px; }
+        .modal-rating-group { text-align: right; margin-top: 10px; }
+        .imdb-rating-score { font-size: 1.8rem; color: #ffffff; font-weight: bold; }
+        .imdb-star { color: #f5c518; margin-right: 5px; font-size: 1.8rem; }
+        .modal-media-row { display: flex; background-color: #000; height: 450px; gap: 5px; }
+        .modal-poster-wrapper { flex-shrink: 0; width: 300px; background-color: #121212; position: relative; }
+        .modal-poster { width: 100%; height: 100%; object-fit: cover; }
+        .modal-video-wrapper { flex-grow: 1; background-color: #000; position: relative; }
+        iframe { width: 100%; height: 100%; border: none; }
+        .modal-details { padding: 30px; }
+        .modal-tags { display: flex; gap: 10px; margin-bottom: 20px; }
+        .genre-tag { border: 1px solid #b3b3b3; border-radius: 20px; padding: 5px 15px; font-size: 0.85rem; color: #ffffff; cursor: default; transition: background 0.3s; }
+        .genre-tag:hover { background-color: rgba(255,255,255,0.1); }
+        .modal-desc { font-size: 1.1rem; line-height: 1.6; color: #ffffff; max-width: 900px; }
+        .modal-platform-text { margin-top: 30px; font-size: 1rem; color: #f5c518; font-weight: bold; }
+
+        @media (max-width: 768px) {
+            .modal-media-row { flex-direction: column; height: auto; }
+            .modal-poster-wrapper { width: 100%; height: 300px; display: none; }
+            .modal-video-wrapper { height: 250px; }
+            .modal-header { flex-direction: column; gap: 10px; padding-right: 30px; }
+            .modal-rating-group { text-align: left; margin-top: 0; }
+            .close-btn { top: 15px; right: 15px; }
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="header-logo">
+            <img src="images/logo.png" alt="MAO & FARM Logo" class="logo-img">
+        </div>
+        <div class="search-wrapper">
+            <input type="text" id="searchInput" placeholder="🔍 ค้นหาอนิเมะ..." onkeyup="searchAnime()" autocomplete="off">
+            <div id="suggestions" class="suggestions-box"></div>
+        </div>
+    </header>
+
+    <div class="container" onclick="closeSuggestions()">
+        
+        <div class="category-section">
+            <h2 class="section-title first">เลือกชมตามช่องทาง (Streaming)</h2>
+            <div class="streaming-list">
+                <div class="streaming-item active" onclick="filterAnime('all', this)" title="ดูทั้งหมด">
+                    <span style="font-weight: bold; color: var(--primary-blue); font-size: 1.2rem;">ALL</span>
+                </div>
+                <div class="streaming-item" onclick="filterAnime('netflix', this)" title="Netflix"><img src="images/logo nf.png" class="streaming-logo"></div>
+                <div class="streaming-item" onclick="filterAnime('bilibili', this)" title="Bilibili"><img src="images/Bilibili-哔哩哔哩-Logo.png" class="streaming-logo"></div>
+                <div class="streaming-item" onclick="filterAnime('disney', this)" title="Disney+"><img src="images/Disneylogo.png" class="streaming-logo"></div>
+                <div class="streaming-item" onclick="filterAnime('Crunchyroll', this)" title="Crunchyroll"><img src="images/crunchyrol logo.png" class="streaming-logo"></div>
+                <div class="streaming-item" onclick="filterAnime('prime', this)" title="Prime Video"><img src="images/logo pm.png" class="streaming-logo"></div>
+                <div class="streaming-item" onclick="filterAnime('iqiyi', this)" title="iQIYI"><img src="images/iq.png" class="streaming-logo"></div>
+            </div>
+        </div>
+
+        <h2 class="section-title">✨ อนิเมะแนะนำมาแรงปี 2026</h2>
+        <div class="anime-grid">
+            <article class="anime-card" data-platforms="bilibili prime">
+                <img src="images/anime-1.jpg" alt="Fate/strange Fake" class="anime-image">
+                <div class="card-content">
+                    <span class="rating">★ 9.6/10</span>
+                    <h3 class="anime-title">Fate/strange Fake</h3>
+                    <p class="anime-desc">สงครามจอกศักดิ์สิทธิ์ปลอมที่ถูกจัดฉากขึ้นในอเมริกา การต่อสู้ของวีรชนและจอมเวทนอกรีต...</p>
+                    <button class="btn-trailer" onclick="openModal(this)" 
+                        data-title="Fate/strange Fake" 
+                        data-year="2026" 
+                        data-rating="9.6" 
+                        data-tags="Action, Fantasy, Magic" 
+                        data-img="images/anime-1.jpg" 
+                        data-desc="โลกของ Fate/strange Fake ถูกสร้างขึ้นโดยมีแนวคิดหลักคือ สงครามจอกศักดิ์สิทธิ์ ซึ่งเป็นความขัดแย้งที่ผู้เข้าร่วมจะอัญเชิญวีรชนวิญญาณ และต่อสู้กันเพื่อแย่งชิงครอบครองจอกศักดิ์สิทธิ์ เรื่องราวมีศูนย์กลางอยู่ที่สงครามจอกศักดิ์สิทธิ์ซึ่งถูกคัดลอกมาอย่างผิดพลาดจากสงครามจอกศักดิ์สิทธิ์ครั้งที่สามในเมืองฟุยูกิ องค์กรจากสหรัฐอเมริกาได้ขโมยข้อมูลและวางแผนประกอบพิธีกรรมของตนเอง" 
+                        data-stream="Bilibili, Prime Video" 
+                        data-video="ZpK4Jvyt1JU">
+                        ดูตัวอย่าง & ข้อมูล
+                    </button>
+                </div>
+            </article>
+            <article class="anime-card" data-platforms="bilibili iqiyi">
+                <img src="images/anime-2.jpg" alt="Sentenced to Be a Hero" class="anime-image">
+                <div class="card-content">
+                    <span class="rating">★ 9.3/10</span>
+                    <h3 class="anime-title">Sentenced to Be a Hero</h3>
+                    <p class="anime-desc">อาชญากรที่ถูกสาปให้เป็น 'ผู้กล้า' ต้องต่อสู้กับจอมมารซ้ำแล้วซ้ำเล่าอย่างไม่มีที่สิ้นสุด...</p>
+                    <button class="btn-trailer" onclick="openModal(this)" 
+                        data-title="Sentenced to Be a Hero" 
+                        data-year="2026" 
+                        data-rating="9.3" 
+                        data-tags="Dark Fantasy, Action, Drama" 
+                        data-img="images/anime-2.jpg" 
+                        data-desc="ในโลกที่กลุ่มอาชญากรจะโดนตราคำสาป บังคับให้เป็น 'ผู้กล้า' สู้กับจอมมารตลอดไป ไม่ว่าจะตายก็จะฟื้นกลับมาทุกครั้งเพื่อทำหน้าที่ให้สำเร็จ เหล่าอาชญากรที่เคยก่อคดีต้องทำหน้าที่แบบสิ้นหวัง จนหัวหน้ากลุ่ม อดีตอัศวินที่เคยฆ่าเทพธิดา ได้พบกับโลงศพที่มีเทพธิดาอีกตนภายใน เมื่อทำพันธสัญญากับเธอ กลายเป็นจุดเริ่มต้นของความเปลี่ยนแปลง" 
+                        data-stream="Bilibili, iQIYI" 
+                        data-video="GcRs1JC7xeg">
+                        ดูตัวอย่าง & ข้อมูล
+                    </button>
+                </div>
+            </article>
+            <article class="anime-card" data-platforms="netflix bilibili iqiyi">
+                <img src="images/anime-7.webp" alt="Jujutsu Kaisen SS3" class="anime-image">
+                <div class="card-content">
+                    <span class="rating">★ 9.8/10</span>
+                    <h3 class="anime-title">Jujutsu Kaisen Season 3</h3>
+                    <p class="anime-desc">ภาค Culling Game เริ่มต้นขึ้น ยูจิต้องเข้าร่วมเกมมรณะเพื่อหยุดยั้งแผนร้าย...</p>
+                    <button class="btn-trailer" onclick="openModal(this)" 
+                        data-title="Jujutsu Kaisen Season 3" 
+                        data-year="2026" 
+                        data-rating="9.8" 
+                        data-tags="Action, Horror, Supernatural" 
+                        data-img="images/anime-7.webp" 
+                        data-desc="อิตาโดริ ยูจิ นักเรียนมัธยมปลายที่มีสมรรถภาพร่างกายสูงได้มาพัวพันกับ 'วัตถุต้องสาป' และกลืนนิ้วของเรียวเมน สุคุนะเข้าไป ในซีซั่นนี้เขาต้องเข้าร่วม 'Culling Game' เกมเข่นฆ่ากันเองของผู้ใช้คุณไสย เพื่อช่วยเหลือรุ่นพี่และหยุดยั้งแผนการคืนชีพจอมมารที่แท้จริง" 
+                        data-stream="Netflix, Bilibili, iQIYI" 
+                        data-video="ruX3rIj3--w">
+                        ดูตัวอย่าง & ข้อมูล
+                    </button>
+                </div>
+            </article>
+            <article class="anime-card" data-platforms="netflix prime bilibili iqiyi">
+                <img src="images/anime-12.webp" alt="Frieren SS2" class="anime-image">
+                <div class="card-content">
+                    <span class="rating">★ 9.9/10</span>
+                    <h3 class="anime-title">Frieren: Beyond Journey's End SS2</h3>
+                    <p class="anime-desc">การเดินทางครั้งใหม่ของฟรีเรน มุ่งหน้าสู่ดินแดนทางเหนือเพื่อค้นหาจิตวิญญาณ...</p>
+                    <button class="btn-trailer" onclick="openModal(this)" 
+                        data-title="Frieren SS2" 
+                        data-year="2026" 
+                        data-rating="9.9" 
+                        data-tags="Adventure, Fantasy, Slice of Life" 
+                        data-img="images/anime-12.webp" 
+                        data-desc="หลังผจญภัยร่วมกัน 10 ปี กลุ่มผู้กล้าพิชิตราชาปิศาจลงได้สำเร็จ เมจเอลฟ์ ฟรีเรน ได้ออกเดินทางต่อไปตามลำพัง เมื่อผ่านไป 50 ปี เธอได้กลับมาที่เมืองอีกครั้ง เพื่อนมนุษย์ได้แก่ชราและล่วงลับไป ต่างจากเอลฟ์ที่อายุขัยยาวนาน หลายสิ่งถูกลืมเลือนกลายเป็นความทรงจำ ทำให้เธอต้องการเรียนรู้เรื่องของมนุษย์ที่มีมุมมองต่างจากเผ่าของเธอ" 
+                        data-stream="Netflix, Prime, Bilibili, iQIYI" 
+                        data-video="MwP4gqRys4c">
+                        ดูตัวอย่าง & ข้อมูล
+                    </button>
+                </div>
+            </article>
+        </div>
+
+        <h2 class="section-title">📺 อนิเมะหมวดหมู่ทั่วไป</h2>
+        <div class="anime-grid" id="animeGrid">
+            <article class="anime-card" data-platforms="netflix bilibili iqiyi prime">
+                <img src="images/anime-4.jpg" alt="Vigilante: My Hero Academia Illegals ss2" class="anime-image">
+                <div class="card-content">
+                    <span class="rating">★ 7.2/10</span>
+                    <h3 class="anime-title">Vigilante: My Hero Academia SS2</h3>
+                    <p class="anime-desc">ไฮมาวาริ โคอิจิ ชายผู้มีพลังอัตลักษณ์ที่ไร้ประโยชน์ ไม่สามารถสอบเป็นฮีโร่ตามความฝันได้...</p>
+                    <button class="btn-trailer" onclick="openModal(this)" 
+                        data-title="Vigilante SS2" 
+                        data-year="2026" 
+                        data-rating="9.5" 
+                        data-tags="Action, Hero" 
+                        data-img="images/anime-4.jpg" 
+                        data-desc="ไฮมาวาริ โคอิจิ ชายผู้มีพลังอัตลักษณ์ที่ไร้ประโยชน์ ไม่สามารถสอบเป็นฮีโร่ตามความฝันได้ จนวันหนึ่งเขาได้บังเอิญพบกับพวกกลุ่ม Vigilante พวกฮีโร่นอกกฎหมายที่รับงานจากพวกโปรฮีโร่ เพื่อปกป้องผู้คนจากเบื้องหลัง และได้เป็นส่วนหนึ่งของทีม * อนิเมะจากมังงะภาคแยกของ MHA เหตุการณ์ก่อนภาคหลักประมาณ 5-6 ปี" 
+                        data-stream="Netflix, Bilibili" 
+                        data-video="cXZUamoOhxM">
+                        ดูตัวอย่าง & ข้อมูล
+                    </button>
+                </div>
+            </article>
+            <article class="anime-card" data-platforms="netflix bilibili iqiyi disney">
+                <img src="images/anime-17.webp" alt="Spy x Family ss3" class="anime-image">
+                <div class="card-content">
+                    <span class="rating">★ 9.0/10</span>
+                    <h3 class="anime-title">Spy x Family SS3</h3>
+                    <p class="anime-desc">สายลับสุดเก่งต้องสร้างครอบครัวปลอมๆ เพื่อกู้โลก ความฮาจึงบังเกิด...</p>
+                    <button class="btn-trailer" onclick="openModal(this)" 
+                        data-title="Spy x Family SS3" 
+                        data-year="2026" 
+                        data-rating="9.0" 
+                        data-tags="Comedy, Action, Family" 
+                        data-img="images/anime-17.webp" 
+                        data-desc="เพื่อปกป้องความสงบสุขของโลก สายลับโค้ดเนม 'สนธยา' ต้องสร้างครอบครัวปลอมๆ เพื่อแทรกซึมเข้าไปในโรงเรียนชื่อดัง แต่ลูกสาวที่รับมาเลี้ยงดันเป็นผู้มีพลังจิต และภรรยาก็เป็นนักฆ่ามือฉมัง เรื่องราวป่วนๆ ฮาๆ จึงเริ่มต้นขึ้น" 
+                        data-stream="Netflix, Disney+, Bilibili" 
+                        data-video="mdB4IDEHFYk">
+                        ดูตัวอย่าง & ข้อมูล
+                    </button>
+                </div>
+            </article>
+            <article class="anime-card" data-platforms="Crunchyroll">
+                <img src="images/anime-10.webp" alt="The Other World's Books Depend on the Bean Counter" class="anime-image">
+                <div class="card-content">
+                    <span class="rating">★ 7.8/10</span>
+                    <h3 class="anime-title">The Other World's Books Depend on the Bean Counter</h3>
+                    <p class="anime-desc">คนโด เซอิจิโรเป็นมนุษย์เงินเดือนวัยเกือบสามสิบผู้มีงานรัดตัวทุกวี่ทุกวัน...</p>
+                    <button class="btn-trailer" onclick="openModal(this)" 
+                        data-title="The Other World's Books" 
+                        data-year="2026" 
+                        data-rating="7.8" 
+                        data-tags="Isekai, BL, Fantasy" 
+                        data-img="images/anime-10.webp" 
+                        data-desc="คนโด เซอิจิโรเป็นมนุษย์เงินเดือนวัยเกือบสามสิบผู้มีงานรัดตัวทุกวี่ทุกวัน อยู่มาวันหนึ่งเขาถูกดึงเข้าไปติดร่างแหกับการอัญเชิญสตรีศักดิ์สิทธิ์และหลุดไปอยู่อาณาจักรโรมานีในต่างโลก แต่ด้วยนิสัยเฉพาะตัวของเขาเอง ทำให้เขาเรียกร้องของานทำหนักต่อไป ด้วยเหตุนั้น เขาจึงได้ใกล้ชิดกับ อเลช หัวหน้ากองอัศวินผู้ได้รับสมญานามว่า คุณชายน้ำแข็ง" 
+                        data-stream="Crunchyroll" 
+                        data-video="508qV6wZVco">
+                        ดูตัวอย่าง & ข้อมูล
+                    </button>
+                </div>
+            </article>
+             <article class="anime-card" data-platforms="Crunchyroll">
+                <img src="images/anime-9.webp" alt="The Demon King's Daughter Is Too Kind!!" class="anime-image">
+                <div class="card-content">
+                    <span class="rating">★ 8.2/10</span>
+                    <h3 class="anime-title">The Demon King's Daughter Is Too Kind!!</h3>
+                    <p class="anime-desc">อาริมัน ราชาอสูรที่แข็งแกร่งมีเป้าหมายที่จะปกครองโลกทั้งหมด แต่ก็หยุดรุกรานเพื่อลูกสาว...</p>
+                    <button class="btn-trailer" onclick="openModal(this)" 
+                        data-title="The Demon King's Daughter" 
+                        data-year="2026" 
+                        data-rating="8.2" 
+                        data-tags="Comedy, Fantasy, Slice of Life" 
+                        data-img="images/anime-9.webp" 
+                        data-desc="อาริมัน ราชาอสูรที่แข็งแกร่งมีเป้าหมายที่จะปกครองโลกทั้งหมด แต่ก็หยุดรุกรานเพื่อ โดว ลูกสาวที่แสนน่ารักของตน เธออยากเป็นเพื่อนกับทุกคนไม่เว้นแม้แต่พวกมนุษย์ ราชาปีศาจจึงให้ลูกสมุนคนสนิทช่วยหาวิธีทำให้ลูกสาวตนดุร้ายสมเป็นปีศาจมากขึ้น แต่ผลลัพธ์ไม่ได้เป็นไปตามที่หวัง" 
+                        data-stream="Crunchyroll" 
+                        data-video="r1s7ch904z4">
+                        ดูตัวอย่าง & ข้อมูล
+                    </button>
+                </div>
+            </article>
+            <article class="anime-card" data-platforms="bilibili">
+                <img src="images/anime-16.webp" alt="Tamon-kun Ima Docchi!?" class="anime-image">
+                <div class="card-content">
+                    <span class="rating">★ 8.9/10</span>
+                    <h3 class="anime-title">Tamon-kun Ima Docchi!?</h3>
+                    <p class="anime-desc">อุทาเกะ สาวมัธยมปลายที่ทำงานพาร์ทไทม์ดูแลบ้าน บังเอิญได้ไปทำงานที่บ้านของนักร้องคนโปรด...</p>
+                    <button class="btn-trailer" onclick="openModal(this)" 
+                        data-title="Tamon-kun Ima Docchi!?" 
+                        data-year="2026" 
+                        data-rating="9.2" 
+                        data-tags="Romance, Comedy, Idol" 
+                        data-img="images/anime-16.webp" 
+                        data-desc="คิโนชิตะ อุทาเกะ สาวมัธยมปลายที่ทำงานพาร์ทไทม์ดูแลบ้าน บังเอิญได้ไปทำงานที่บ้านของไอดอลขวัญใจ ฟุกุฮาระ ทามอน แต่ตัวจริงเขากลับไม่ได้ดูหล่อเข้มแบบบนเวที กลับเป็นพวกคิดมากเกินเหตุ แล้วกำลังมีปัญหาชีวิตจนอยากลาออกจากวงการ ทำให้แฟนคลับแบบเธอทนไม่ได้จนต้องหาวิธีสนับสนุนเขาอย่างเต็มที่" 
+                        data-stream="Bilibili" 
+                        data-video="3eCxX6TG1AI">
+                        ดูตัวอย่าง & ข้อมูล
+                    </button>
+                </div>
+            </article>
+            <article class="anime-card" data-platforms="bilibili">
+                <img src="images/anime-3.jpg" alt="The Magician Kunon" class="anime-image">
+                <div class="card-content">
+                    <span class="rating">★ 9.2/10</span>
+                    <h3 class="anime-title">The Magician Kunon</h3>
+                    <p class="anime-desc">คุนอน จอมเวทตาบอดผู้สร้างตาเทียมด้วยเวทน้ำ และการผจญภัยเพื่อเรียนรู้โลกกว้าง...</p>
+                    <button class="btn-trailer" onclick="openModal(this)" 
+                        data-title="The Magician Kunon" 
+                        data-year="2026" 
+                        data-rating="9.2" 
+                        data-tags="Fantasy, Magic, Adventure" 
+                        data-img="images/anime-3.jpg" 
+                        data-desc="ในโลกที่ผู้สืบเชื้อสายจากผู้กล้าจะต้องสูญเสียบางสิ่ง คุนอน สูญเสียการมองเห็นตั้งแต่เกิด เขาต้องการสร้างตาเทียมด้วยเวทน้ำ ด้วยความใฝ่รู้ พรสวรรค์ และสนุกกับเวทมนตร์ ทำให้เขาสามารถพัฒนาความสามารถได้รวดเร็ว รับรู้สิ่งรอบตัวได้ ใช้เวทน้ำทำได้หลายสิ่งจนกลายเป็นจอมเวทผู้แข็งแกร่งในดินแดน" 
+                        data-stream="Bilibili" 
+                        data-video="FInmR1F31Ho">
+                        ดูตัวอย่าง & ข้อมูล
+                    </button>
+                </div>
+            </article>
+            <article class="anime-card" data-platforms="Crunchyroll">
+                <img src="images/anime-13.webp" alt="Scum of the Brave" class="anime-image">
+                <div class="card-content">
+                    <span class="rating">★ 9/10</span>
+                    <h3 class="anime-title">Scum of the Brave</h3>
+                    <p class="anime-desc">โลกศตวรรษที่ 21 ที่โตเกียวถูกปกครองโดยมาเฟียที่ทรงอำนาจ...</p>
+                    <button class="btn-trailer" onclick="openModal(this)" 
+                        data-title="Scum of the Brave" 
+                        data-year="2026" 
+                        data-rating="9" 
+                        data-tags="Dark Action, Fantasy" 
+                        data-img="images/anime-13.webp" 
+                        data-desc="โลกศตวรรษที่ 21 ที่โตเกียวถูกปกครองโดยมาเฟียที่ทรงอำนาจ ผู้ครองแหล่งพลังงานมากพอจะกลายเป็นจอมมาร ในขณะที่นักล่าค่าหัวจะกลายเป็นผู้กล้า เสริมพลังด้วยยาเพื่อล่าพวกจอมมาร การสังหารในสังคมเป็นเรื่องที่ไม่ผิดกฎหมาย ยาชิโร่ ผู้กล้าแบบฟรีแลนซ์หาเงินเพื่อยังชีพ จนมีนักเรียนสาว 3 คนที่อยากเป็นฮีโร่แบบเขาจึงต้องการให้เขาเป็นอาจารย์" 
+                        data-stream="Crunchyroll" 
+                        data-video="mGNgUkIArkU">
+                        ดูตัวอย่าง & ข้อมูล
+                    </button>
+                </div>
+            </article>
+            <article class="anime-card" data-platforms="Crunchyroll">
+                <img src="images/anime-8.webp" alt="The Case Book of Arne" class="anime-image">
+                <div class="card-content">
+                    <span class="rating">★ 8.8/10</span>
+                    <h3 class="anime-title">The Case Book of Arne</h3>
+                    <p class="anime-desc">นักสืบแวมไพร์ Arne Neuntöte และ Lynn Reinweiss ร่วมมือกันไขคดี...</p>
+                    <button class="btn-trailer" onclick="openModal(this)" 
+                        data-title="The Case Book of Arne" 
+                        data-year="2026" 
+                        data-rating="8.8" 
+                        data-tags="Mystery, Vampire, Supernatural" 
+                        data-img="images/anime-8.webp" 
+                        data-desc="นักสืบแวมไพร์ Arne Neuntöte และ Lynn Reinweiss ลูกสาวของตระกูลขุนนางที่ซึ่งรักแวมไพร์ พวกเขาร่วมมือกันไขคดีฆาตกรรมนองเลือด" 
+                        data-stream="Crunchyroll" 
+                        data-video="oDJFEY55gQQ">
+                        ดูตัวอย่าง & ข้อมูล
+                    </button>
+                </div>
+            </article>
+            <div id="noResult">❌ ไม่พบอนิเมะในหมวดหมู่นี้</div>
+        </div>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 MAO & FARM Review. All rights reserved.</p>
+    </footer>
+
+    <div id="imdbModal" class="modal" onclick="closeModal()">
+        <div class="modal-content" onclick="event.stopPropagation()">
+            <span class="close-btn" onclick="closeModal()">&times;</span>
+            <div class="modal-header">
+                <div class="modal-title-group">
+                    <h2 id="mTitle">Title</h2>
+                    <div class="modal-meta-data"><span id="mYear">Year</span> • <span id="mDuration">Anime Series</span></div>
+                </div>
+                <div class="modal-rating-group">
+                    <div class="imdb-rating-score"><span class="imdb-star">★</span><span id="mRating">9.0</span>/10</div>
+                </div>
+            </div>
+            <div class="modal-media-row">
+                <div class="modal-poster-wrapper"><img id="mImg" src="" alt="Poster" class="modal-poster"></div>
+                <div class="modal-video-wrapper"><iframe id="mVideo" src="" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>
+            </div>
+            <div class="modal-details">
+                <div class="modal-tags" id="mTags"></div>
+                <p id="mDesc" class="modal-desc">Desc...</p>
+                <div class="modal-platform-text">Watch on: <span id="mStream" style="color: white; font-weight: normal;">Netflix</span></div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function searchAnime() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let cards = document.getElementsByClassName('anime-card');
+            let suggestionsBox = document.getElementById('suggestions');
+            let noResult = document.getElementById('noResult');
+            let foundCount = 0;
+            
+            let buttons = document.getElementsByClassName('streaming-item');
+            for (let btn of buttons) { btn.classList.remove('active'); }
+            if(buttons.length > 0) buttons[0].classList.add('active'); 
+
+            for (let i = 0; i < cards.length; i++) {
+                let title = cards[i].querySelector('.anime-title').innerText.toLowerCase();
+                if (title.includes(input)) { cards[i].style.display = ""; foundCount++; } 
+                else { cards[i].style.display = "none"; }
+            }
+            noResult.style.display = (foundCount === 0) ? "block" : "none";
+
+            suggestionsBox.innerHTML = ''; 
+            if (input.length > 0) {
+                let matchFound = false;
+                for (let i = 0; i < cards.length; i++) {
+                    let titleElement = cards[i].querySelector('.anime-title');
+                    let titleText = titleElement.innerText;
+                    
+                    if (titleText.toLowerCase().includes(input)) {
+                        matchFound = true;
+                        let item = document.createElement('div');
+                        item.className = 'suggestion-item';
+                        item.innerHTML = `<span class="suggestion-icon">🔍</span> ${titleText}`;
+                        item.onclick = function() {
+                            let btn = cards[i].querySelector('.btn-trailer');
+                            openModal(btn); 
+                            document.getElementById('searchInput').value = titleText;
+                            suggestionsBox.style.display = 'none'; 
+                        };
+                        suggestionsBox.appendChild(item);
+                    }
+                }
+                suggestionsBox.style.display = matchFound ? 'block' : 'none';
+                document.getElementById('searchInput').style.borderRadius = matchFound ? '20px 20px 0 0' : '50px';
+            } else {
+                suggestionsBox.style.display = 'none';
+                document.getElementById('searchInput').style.borderRadius = '50px';
+            }
+        }
+
+        function closeSuggestions() {
+            document.getElementById('suggestions').style.display = 'none';
+            document.getElementById('searchInput').style.borderRadius = '50px';
+        }
+
+        function filterAnime(category, element) {
+            let cards = document.getElementsByClassName('anime-card');
+            let noResult = document.getElementById('noResult');
+            let foundCount = 0;
+            document.getElementById('searchInput').value = "";
+            document.getElementById('suggestions').style.display = 'none';
+            
+            let buttons = document.getElementsByClassName('streaming-item');
+            for (let btn of buttons) { btn.classList.remove('active'); }
+            if(element) element.classList.add('active');
+            
+            for (let i = 0; i < cards.length; i++) {
+                let platforms = cards[i].getAttribute('data-platforms');
+                if (category === 'all' || (platforms && platforms.includes(category))) {
+                    cards[i].style.display = ""; foundCount++;
+                } else { cards[i].style.display = "none"; }
+            }
+            noResult.style.display = (foundCount === 0) ? "block" : "none";
+        }
+
+        const modal = document.getElementById('imdbModal');
+        const iframe = document.getElementById('mVideo');
+
+        function openModal(btn) {
+            let title = btn.getAttribute('data-title');
+            let year = btn.getAttribute('data-year');
+            let rating = btn.getAttribute('data-rating');
+            let tags = btn.getAttribute('data-tags');
+            let img = btn.getAttribute('data-img');
+            let desc = btn.getAttribute('data-desc');
+            let stream = btn.getAttribute('data-stream');
+            let video = btn.getAttribute('data-video');
+
+            document.getElementById('mTitle').innerText = title;
+            document.getElementById('mYear').innerText = year;
+            document.getElementById('mRating').innerText = rating;
+            document.getElementById('mImg').src = img;
+            document.getElementById('mDesc').innerText = desc;
+            document.getElementById('mStream').innerText = stream;
+            
+            let tagContainer = document.getElementById('mTags');
+            tagContainer.innerHTML = '';
+            if(tags) {
+                let tagList = tags.split(',');
+                tagList.forEach(tag => {
+                    let span = document.createElement('span');
+                    span.className = 'genre-tag';
+                    span.innerText = tag.trim();
+                    tagContainer.appendChild(span);
+                });
+            }
+
+            iframe.src = `https://www.youtube.com/embed/${video}?autoplay=1`;
+            modal.style.display = 'flex';
+        }
+
+        function closeModal() {
+            modal.style.display = 'none';
+            iframe.src = '';
+        }
+    </script>
+</body>
+</html>
